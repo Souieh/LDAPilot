@@ -5,6 +5,8 @@ A modern, clean, and easy-to-use LDAP client for managing Samba4 Directory Servi
 ## Features
 
 - **Multi-Profile Configuration**: Store and manage multiple LDAP connection profiles locally
+- **Secure Authentication**: Session-based authentication against your LDAP directory
+- **System Dashboard**: Real-time statistics for users, groups, and computer objects
 - **AD Management**: Browse and manage:
   - Users with account status, email, and more
   - Computers and workstations
@@ -81,11 +83,13 @@ lib/
 ### Installation
 
 1. Clone the repository and install dependencies:
+
 ```bash
 pnpm install
 ```
 
 2. Start the development server:
+
 ```bash
 pnpm dev
 ```
@@ -110,6 +114,7 @@ pnpm dev
 ### Reusability & Clean Code
 
 All components follow these principles:
+
 - **Single Responsibility**: Each component does one thing well
 - **Props-Based Configuration**: No hardcoded values
 - **Maximum 150-200 Lines**: Components are kept small for easy maintenance
@@ -117,28 +122,30 @@ All components follow these principles:
 
 ### Key Reusable Components
 
-| Component | Purpose | Usage |
-|-----------|---------|-------|
-| `DataTable` | Display and manage any list of objects | AD objects, DNS records |
-| `FilterForm` | Search and filter UI | All list pages |
-| `Modal` | Dialogs and confirmations | Editing, viewing, creating |
-| `DynamicForm` | Auto-generate forms from field definitions | Profile creation, record editing |
-| `OUTreeSidebar` | Navigate OU hierarchy | AD Management page |
+| Component       | Purpose                                    | Usage                            |
+| --------------- | ------------------------------------------ | -------------------------------- |
+| `DataTable`     | Display and manage any list of objects     | AD objects, DNS records          |
+| `FilterForm`    | Search and filter UI                       | All list pages                   |
+| `Modal`         | Dialogs and confirmations                  | Editing, viewing, creating       |
+| `DynamicForm`   | Auto-generate forms from field definitions | Profile creation, record editing |
+| `OUTreeSidebar` | Navigate OU hierarchy                      | AD Management page               |
 
 ### Externalized Configuration
 
 All UI text, attributes, and constants are externalized:
 
 **UI Labels** (`lib/constants/ui-labels.ts`):
+
 ```typescript
 export const UI_LABELS = {
   app: { title: 'LDAP Directory Manager' },
   navigation: { adManagement: 'AD Management' },
   // ... all UI strings
-}
+};
 ```
 
 **LDAP Attributes** (`lib/constants/ldap-attributes.ts`):
+
 ```typescript
 export const LDAP_ATTRIBUTES = {
   user: {
@@ -150,11 +157,12 @@ export const LDAP_ATTRIBUTES = {
 ```
 
 **DNS Record Types** (`lib/constants/dns-record-types.ts`):
+
 ```typescript
 export const DNS_RECORD_TYPES = {
   A: { name: 'A', description: 'IPv4 Address' },
   // ... all record types
-}
+};
 ```
 
 ## Configuration Management
@@ -171,7 +179,7 @@ Configurations are stored in `./config/profiles.json` (server-side):
       "id": "profile_1234567890",
       "hostname": "dc.example.com",
       "port": 389,
-      "protocol": "ldap", 
+      "protocol": "ldap",
       "domain": "example.com",
       "baseDN": "dc=example,dc=com",
       "created": "2024-01-15T10:00:00Z",
@@ -285,8 +293,8 @@ MIT
 ## Contributing
 
 Contributions welcome! Please ensure:
+
 - No hardcoded values
 - Keep components small and focused
 - Use TypeScript for type safety
 - Follow existing code style
-
