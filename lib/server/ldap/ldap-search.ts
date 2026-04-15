@@ -37,6 +37,69 @@ export async function searchUsers(
   }
 }
 
+export async function getGroupMembers(
+  config: LDAPConfig,
+  userDN: string,
+  password: string,
+  groupDN: string
+): Promise<any[]> {
+  const client = getClient(config);
+  try {
+    await client.bind(userDN, password);
+
+    // 1. Get the group's members (DNs)
+    const { searchEntries: groupEntries } = await client.search(groupDN, {
+      scope: 'base',
+      attributes: ['member'],
+    });
+
+    if (groupEntries.length === 0) return [];
+
+    const members = groupEntries[0].member;
+    const memberDNs = Array.isArray(members) ? members : members ? [members] : [];
+
+    if (memberDNs.length === 0) return [];
+
+    // 2. Fetch details for each member
+    // Since ldapts doesn't easily support OR filters for many DNs in one go efficiently without risk of long filters,
+    // and we want type info, we can do a search with a filter for these DNs if they are in the same domain.
+    // However, the most robust way is to fetch them.
+
+    const results = await Promise.all(memberDNs.map(async (dn) => {
+      try {
+        const { searchEntries } = await client.search(String(dn), {
+          scope: 'base',
+          attributes: ['dn', 'cn', 'sAMAccountName', 'objectClass', 'displayName', 'mail'],
+        });
+        if (searchEntries.length > 0) {
+          const entry = searchEntries[0];
+          const objectClass = entry.objectClass as string[];
+          let type = 'Unknown';
+          if (objectClass.includes('user')) type = 'User';
+          else if (objectClass.includes('group')) type = 'Group';
+          else if (objectClass.includes('computer')) type = 'Computer';
+
+          return {
+            dn: entry.dn,
+            cn: entry.cn,
+            sAMAccountName: entry.sAMAccountName,
+            displayName: entry.displayName,
+            mail: entry.mail,
+            type,
+          };
+        }
+      } catch (e) {
+        console.error(`Error fetching member ${dn}:`, e);
+      }
+      return null;
+    }));
+
+    return results.filter(Boolean);
+  } finally {
+    await client.unbind();
+  }
+}
+
 export async function searchComputers(
   config: LDAPConfig,
   userDN: string,

@@ -9,6 +9,7 @@ import { DataTable, DataTableColumn } from '@/components/data/data-table';
 import { CreateOUModal } from '@/components/ad/create-ou-modal';
 import { DeleteOUModal } from '@/components/ad/delete-ou-modal';
 import { ManageGroupsModal } from '@/components/ad/manage-groups-modal';
+import { GroupMembersModal } from '@/components/ad/group-members-modal';
 import { MoveObjectModal } from '@/components/ad/move-object-modal';
 import { DeleteObjectModal } from '@/components/ad/delete-object-modal';
 import { UpdatePasswordModal } from '@/components/ad/update-password-modal';
@@ -47,6 +48,7 @@ export default function ADManagementPage() {
   const [objectForPassword, setObjectForPassword] = useState<{ dn: string; name: string } | null>(null);
   const [objectForStatus, setObjectForStatus] = useState<{ dn: string; name: string; enabled: boolean; type: string } | null>(null);
   const [objectForGroups, setObjectForGroups] = useState<any | null>(null);
+  const [groupForMembers, setGroupForMembers] = useState<{ dn: string; name: string } | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formType, setFormType] = useState<'user' | 'group' | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -288,6 +290,13 @@ export default function ADManagementPage() {
     setObjectForGroups(item);
   };
 
+  const handleViewMembers = (item: any) => {
+    setGroupForMembers({
+      dn: item.dn,
+      name: item.displayName || item.cn || item.sAMAccountName,
+    });
+  };
+
   const handleToggleStatus = (item: any) => {
     const enabled = isAccountEnabled(item.userAccountControl);
     return {
@@ -522,6 +531,7 @@ export default function ADManagementPage() {
                       onEdit={(item) => openCreateForm('group', item)}
                       onMove={handleMove}
                       onGroups={handleManageGroups}
+                      onMembers={handleViewMembers}
                       onDelete={handleDelete}
                       searchKey="cn"
                       searchValue={searchValue}
@@ -616,6 +626,13 @@ export default function ADManagementPage() {
         enabled={objectForStatus?.enabled || false}
         type={objectForStatus?.type || ''}
         onSuccess={refreshCurrentData}
+      />
+
+      <GroupMembersModal
+        isOpen={!!groupForMembers}
+        onClose={() => setGroupForMembers(null)}
+        groupDN={groupForMembers?.dn || ''}
+        groupName={groupForMembers?.name || ''}
       />
     </>
   );

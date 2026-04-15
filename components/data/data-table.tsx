@@ -25,6 +25,7 @@ export interface DataTableProps<T> {
   onEdit?: (item: T) => void;
   onMove?: (item: T) => void;
   onGroups?: (item: T) => void;
+  onMembers?: (item: T) => void;
   onPassword?: (item: T) => void;
   onToggleStatus?: (item: T) => { label: string; icon: React.ReactNode; onClick: (item: T) => void };
   onDelete: (item: T) => void;
@@ -44,6 +45,7 @@ export function DataTable<T extends { id?: string; dn?: string }>(
     onEdit,
     onMove,
     onGroups,
+    onMembers,
     onPassword,
     onToggleStatus,
     onDelete,
@@ -189,6 +191,12 @@ export function DataTable<T extends { id?: string; dn?: string }>(
                     <DropdownMenuItem onClick={() => onGroups(item)}>
                       <Users className="h-4 w-4 mr-2" />
                       Manage Groups
+                    </DropdownMenuItem>
+                  )}
+                  {onMembers && (
+                    <DropdownMenuItem onClick={() => onMembers(item)}>
+                      <Users className="h-4 w-4 mr-2" />
+                      View Members
                     </DropdownMenuItem>
                   )}
                   {onToggleStatus && (

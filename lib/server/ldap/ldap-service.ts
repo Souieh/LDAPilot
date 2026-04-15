@@ -6,12 +6,11 @@ import {
   deleteObject,
   moveObject,
   toggleGroupMember,
-  toggleObjectStatus,
   updateObject,
   updatePassword,
 } from './ldap-objects';
 import { createOU, deleteOU, searchOUs } from './ldap-ous';
-import { searchComputers, searchGroups, searchUsers } from './ldap-search';
+import { getGroupMembers, searchComputers, searchGroups, searchUsers } from './ldap-search';
 
 export class LDAPService {
   async createObject(
@@ -116,6 +115,15 @@ export class LDAPService {
     scope: 'base' | 'one' | 'sub' = 'one'
   ): Promise<ADGroup[]> {
     return searchGroups(config, userDN, password, ouDN, scope);
+  }
+
+  async getGroupMembers(
+    config: LDAPConfig,
+    userDN: string,
+    password: string,
+    groupDN: string
+  ): Promise<any[]> {
+    return getGroupMembers(config, userDN, password, groupDN);
   }
 
   async getDashboardStats(
