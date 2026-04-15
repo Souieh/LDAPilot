@@ -14,8 +14,10 @@ export interface SecurityDescriptor {
   dacl?: ACE[];
 }
 
-export function sidToString(buffer: Buffer): string {
-  if (!buffer || buffer.length < 8) return '';
+export function sidToString(input: Buffer | Uint8Array): string {
+  if (!input) return '';
+  const buffer = Buffer.isBuffer(input) ? input : Buffer.from(input);
+  if (buffer.length < 8) return '';
   const revision = buffer.readUInt8(0);
   const subAuthorityCount = buffer.readUInt8(1);
   const identifierAuthority = buffer.readUIntBE(2, 6);
@@ -28,8 +30,11 @@ export function sidToString(buffer: Buffer): string {
   return sid;
 }
 
-export function parseSecurityDescriptor(buffer: Buffer): SecurityDescriptor {
-  if (!buffer || buffer.length < 20) {
+export function parseSecurityDescriptor(input: Buffer | Uint8Array): SecurityDescriptor {
+  if (!input) throw new Error('Invalid Security Descriptor buffer');
+  const buffer = Buffer.isBuffer(input) ? input : Buffer.from(input);
+
+  if (buffer.length < 20) {
     throw new Error('Invalid Security Descriptor buffer');
   }
 
