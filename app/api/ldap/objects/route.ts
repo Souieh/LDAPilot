@@ -68,6 +68,8 @@ export async function PATCH(request: NextRequest) {
       );
     } else if (action === 'password') {
       await ldapService.updatePassword(dn, payload.newPassword, session.userDN, password);
+    } else if (action === 'toggle-status') {
+      await ldapService.toggleObjectStatus(dn, payload.enabled, session.userDN, password);
     } else {
       return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }

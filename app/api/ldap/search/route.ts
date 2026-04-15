@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { ouDN, objectType } = body;
+    const { ouDN, objectType, scope } = body;
 
     if (!ouDN || !objectType) {
       return NextResponse.json({ error: 'ouDN and objectType are required' }, { status: 400 });
@@ -26,6 +26,8 @@ export async function POST(request: NextRequest) {
     }
 
     let results: any[] = [];
+    const searchDN = ouDN === 'ROOT' ? profile.config.baseDN : ouDN;
+    const searchScope = scope || (ouDN === 'ROOT' ? 'sub' : 'one');
 
     switch (objectType.toLowerCase()) {
       case 'user':
@@ -33,7 +35,8 @@ export async function POST(request: NextRequest) {
           profile.config,
           session.userDN,
           session.password,
-          ouDN
+          searchDN,
+          searchScope
         );
         break;
       case 'computer':
@@ -41,7 +44,8 @@ export async function POST(request: NextRequest) {
           profile.config,
           session.userDN,
           session.password,
-          ouDN
+          searchDN,
+          searchScope
         );
         break;
       case 'group':
@@ -49,7 +53,8 @@ export async function POST(request: NextRequest) {
           profile.config,
           session.userDN,
           session.password,
-          ouDN
+          searchDN,
+          searchScope
         );
         break;
       default:

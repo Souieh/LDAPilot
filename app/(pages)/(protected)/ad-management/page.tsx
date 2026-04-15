@@ -12,6 +12,7 @@ import { ManageGroupsModal } from '@/components/ad/manage-groups-modal';
 import { MoveObjectModal } from '@/components/ad/move-object-modal';
 import { DeleteObjectModal } from '@/components/ad/delete-object-modal';
 import { UpdatePasswordModal } from '@/components/ad/update-password-modal';
+import { ToggleStatusModal } from '@/components/ad/toggle-status-modal';
 import { ADObjectDetailModal } from '@/components/ad/ad-object-detail-modal';
 import { ADObjectFormModal } from '@/components/ad/ad-object-form-modal';
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,7 @@ import { toast } from 'sonner';
 import { UI_LABELS } from '@/lib/constants/ui-labels';
 import { LDAP_ATTRIBUTES, getAccountStatus } from '@/lib/constants/ldap-attributes';
 import { ADOU, ADUser, ADComputer, ADGroup } from '@/lib/types/config';
+import { isAccountEnabled } from '@/lib/constants/ldap-attributes';
 
 type ObjectType = 'user' | 'computer' | 'group';
 
@@ -43,6 +45,7 @@ export default function ADManagementPage() {
   const [objectToDelete, setObjectToDelete] = useState<{ dn: string; name: string; type: string } | null>(null);
   const [objectToMove, setObjectToMove] = useState<{ dn: string; name: string } | null>(null);
   const [objectForPassword, setObjectForPassword] = useState<{ dn: string; name: string } | null>(null);
+  const [objectForStatus, setObjectForStatus] = useState<{ dn: string; name: string; enabled: boolean; type: string } | null>(null);
   const [objectForGroups, setObjectForGroups] = useState<any | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formType, setFormType] = useState<'user' | 'group' | null>(null);
@@ -54,6 +57,7 @@ export default function ADManagementPage() {
  
   const breadcrumbs = useMemo(() => {
     if (!selectedOuDN) return [];
+    if (selectedOuDN === 'ROOT') return [{ label: 'All Objects', dn: 'ROOT' }];
     // Split DN by commas not preceded by backslash
     const parts = selectedOuDN.match(/(?:\\.|[^,])+/g) || [];
     const result = [];
@@ -108,6 +112,7 @@ export default function ADManagementPage() {
         body: JSON.stringify({
           ouDN,
           objectType,
+          scope: ouDN === 'ROOT' ? 'sub' : 'one',
         }),
       });
 
@@ -152,6 +157,10 @@ export default function ADManagementPage() {
   };
 
   const refreshCurrentData = async () => {
+    if (selectedOuDN === 'ROOT') {
+      await handleSelectOU('ROOT', { dn: 'ROOT', ou: 'All Objects', objectClass: [], cn: 'All Objects' });
+      return;
+    }
     const currentOu = ous.find(o => o.dn === selectedOuDN);
     if (currentOu && selectedOuDN) {
       await handleSelectOU(selectedOuDN, currentOu);
@@ -173,6 +182,7 @@ export default function ADManagementPage() {
           body: JSON.stringify({
             ouDN: selectedOuDN,
             objectType: type,
+            scope: selectedOuDN === 'ROOT' ? 'sub' : 'one',
           }),
         });
 
@@ -276,6 +286,22 @@ export default function ADManagementPage() {
 
   const handleManageGroups = (item: any) => {
     setObjectForGroups(item);
+  };
+
+  const handleToggleStatus = (item: any) => {
+    const enabled = isAccountEnabled(item.userAccountControl);
+    return {
+      label: enabled ? 'Disable' : 'Enable',
+      icon: enabled ? <UserX className="h-4 w-4 mr-2" /> : <UserCheck className="h-4 w-4 mr-2" />,
+      onClick: (item: any) => {
+        setObjectForStatus({
+          dn: item.dn,
+          name: item.displayName || item.cn || item.sAMAccountName,
+          enabled: enabled,
+          type: item.objectClass.includes('computer') ? 'Computer' : 'User',
+        });
+      }
+    };
   };
 
   const userColumns: DataTableColumn<ADUser>[] = [
@@ -449,6 +475,7 @@ export default function ADManagementPage() {
                       onMove={handleMove}
                       onPassword={handlePasswordReset}
                       onGroups={handleManageGroups}
+                      onToggleStatus={handleToggleStatus}
                       onDelete={handleDelete}
                       searchKey="displayName"
                       searchValue={searchValue}
@@ -468,6 +495,7 @@ export default function ADManagementPage() {
                       data={computers}
                       onView={handleView}
                       onMove={handleMove}
+                      onToggleStatus={handleToggleStatus}
                       onDelete={handleDelete}
                       searchKey="cn"
                       searchValue={searchValue}
@@ -578,6 +606,16 @@ export default function ADManagementPage() {
         isOpen={showDetailModal}
         onClose={() => setShowDetailModal(false)}
         item={selectedItem}
+      />
+
+      <ToggleStatusModal
+        isOpen={!!objectForStatus}
+        onClose={() => setObjectForStatus(null)}
+        dn={objectForStatus?.dn || ''}
+        name={objectForStatus?.name || ''}
+        enabled={objectForStatus?.enabled || false}
+        type={objectForStatus?.type || ''}
+        onSuccess={refreshCurrentData}
       />
     </>
   );

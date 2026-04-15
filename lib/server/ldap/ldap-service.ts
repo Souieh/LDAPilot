@@ -34,6 +34,10 @@ export class LDAPService {
     return updatePassword(dn, newPassword, userDN, password);
   }
 
+  async toggleObjectStatus(dn: string, enabled: boolean, userDN: string, password: string) {
+    return toggleObjectStatus(dn, enabled, userDN, password);
+  }
+
   async toggleGroupMember(
     groupDN: string,
     memberDN: string,
