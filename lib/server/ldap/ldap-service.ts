@@ -6,11 +6,20 @@ import {
   deleteObject,
   moveObject,
   toggleGroupMember,
+  toggleObjectStatus,
   updateObject,
   updatePassword,
 } from './ldap-objects';
 import { createOU, deleteOU, searchOUs } from './ldap-ous';
-import { searchComputers, searchGroups, searchUsers } from './ldap-search';
+import { getObjectPermissions } from './ldap-permissions';
+import {
+  getGroupMembers,
+  getObjectByDN,
+  getObjectParents,
+  searchComputers,
+  searchGroups,
+  searchUsers,
+} from './ldap-search';
 
 export class LDAPService {
   async createObject(
@@ -32,6 +41,10 @@ export class LDAPService {
   }
   async updatePassword(dn: string, newPassword: string, userDN: string, password: string) {
     return updatePassword(dn, newPassword, userDN, password);
+  }
+
+  async toggleObjectStatus(dn: string, enabled: boolean, userDN: string, password: string) {
+    return toggleObjectStatus(dn, enabled, userDN, password);
   }
 
   async toggleGroupMember(
@@ -111,6 +124,37 @@ export class LDAPService {
     scope: 'base' | 'one' | 'sub' = 'one'
   ): Promise<ADGroup[]> {
     return searchGroups(config, userDN, password, ouDN, scope);
+  }
+
+  async getGroupMembers(
+    config: LDAPConfig,
+    userDN: string,
+    password: string,
+    groupDN: string
+  ): Promise<any[]> {
+    return getGroupMembers(config, userDN, password, groupDN);
+  }
+
+  async getObjectParents(
+    config: LDAPConfig,
+    userDN: string,
+    password: string,
+    groupDN: string
+  ): Promise<any[]> {
+    return getObjectParents(config, userDN, password, groupDN);
+  }
+
+  async getObjectByDN(
+    config: LDAPConfig,
+    userDN: string,
+    password: string,
+    dn: string
+  ): Promise<any> {
+    return getObjectByDN(config, userDN, password, dn);
+  }
+
+  async getObjectPermissions(config: LDAPConfig, userDN: string, password: string, dn: string) {
+    return getObjectPermissions(config, userDN, password, dn);
   }
 
   async getDashboardStats(

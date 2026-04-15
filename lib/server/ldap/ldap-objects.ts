@@ -78,6 +78,50 @@ export async function createObject(ouDN: string, objectType: string, attributes:
   }
 }
 
+export async function toggleObjectStatus(dn: string, enabled: boolean, userDN: string, password: string) {
+  const profile = await configService.getActiveProfile();
+  if (!profile) throw new Error('No active LDAP profile found');
+
+  const client = getClient(profile.config);
+  try {
+    await client.bind(userDN, password);
+
+    // 1. Get current userAccountControl
+    const { searchEntries } = await client.search(dn, {
+      scope: 'base',
+      attributes: ['userAccountControl'],
+    });
+
+    if (searchEntries.length === 0) {
+      throw new Error('Object not found');
+    }
+
+    const uac = parseInt(String(searchEntries[0].userAccountControl || '512'));
+    const ACCOUNTDISABLE = 0x0002;
+
+    let newUac: number;
+    if (enabled) {
+      // Remove ACCOUNTDISABLE flag
+      newUac = uac & ~ACCOUNTDISABLE;
+    } else {
+      // Add ACCOUNTDISABLE flag
+      newUac = uac | ACCOUNTDISABLE;
+    }
+
+    const change = new Change({
+      operation: 'replace',
+      modification: new Attribute({
+        type: 'userAccountControl',
+        values: [String(newUac)],
+      }),
+    });
+
+    await client.modify(dn, [change]);
+  } finally {
+    await client.unbind();
+  }
+}
+
 export async function moveObject(dn: string, newOU: string, userDN:string,password: string) {
   const profile = await configService.getActiveProfile();
   if (!profile) throw new Error('No active LDAP profile found');

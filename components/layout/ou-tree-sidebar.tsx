@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { ADOU } from '@/lib/types/config';
 import { OUTreeNode } from '@/components/ad/ou-tree-node';
+import { LayoutGrid } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export interface OUTreeSidebarProps {
   ous: ADOU[];
@@ -106,7 +108,21 @@ export function OUTreeSidebar({
   }
 
   return (
-    <div className="overflow-y-auto max-h-[calc(100vh-120px)]">
+    <div className="overflow-y-auto max-h-[calc(100vh-120px)] space-y-2">
+      <div
+        onClick={() => onSelectOU('ROOT', { dn: 'ROOT', ou: 'All Objects', objectClass: [], cn: 'All Objects' })}
+        className={cn(
+          'w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors cursor-pointer mb-2',
+          'hover:bg-muted text-foreground',
+          selectedOuDN === 'ROOT' && 'bg-primary text-primary-foreground hover:bg-primary'
+        )}
+      >
+        <LayoutGrid className="h-4 w-4 flex-shrink-0" />
+        <span className="font-medium">All Objects</span>
+      </div>
+
+      <div className="h-px bg-border my-2 mx-1" />
+
       {tree.length === 0 ? (
         <div className="flex items-center justify-center h-full text-sm text-muted-foreground p-4 text-center">
           No Organizational Units found
